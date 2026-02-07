@@ -1,20 +1,28 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+SmartDoc AI: The Universal Paper-to-Action Agent
 
-# Run and deploy your AI Studio app
+SmartDoc AI è un agente intelligente multimodale progettato per abbattere le barriere tra il mondo fisico e i processi digitali. Utilizzando la potenza di Gemini 1.5 Flash, trasforma documenti cartacei complessi e testi manoscritti in dati strutturati e azioni immediate.
 
-This contains everything you need to run your app locally.
+Caratteristiche Principali
+- Analisi Multimodale "Context-Aware": Riconosce automaticamente la tipologia di documento (bollette, scontrini, referti medici, contratti) senza bisogno di istruzioni specifiche.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1g0RlVtCaNLq4x7KH8qnzelvwd0Gl-h7R
+- Decifrazione Testo Manoscritto: Grazie alle capacità avanzate di visione di Gemini, è in grado di interpretare referti medici manoscritti e note veloci con alta precisione.
 
-## Run Locally
+- Azioni Contestuali Dinamiche: Non si limita a leggere; l'interfaccia genera pulsanti d'azione specifici (es. "Paga ora" per le bollette, "Salva spesa" per gli scontrini).
 
-**Prerequisites:**  Node.js
+- Sintesi Vocale per Accessibilità: Integra un sistema di lettura vocale per assistere persone ipovedenti o anziani nella gestione della burocrazia.
 
+Tech Stack
+- AI Engine: Gemini 1.5 Flash API (Multimodal Large Language Model)
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- Framework: React con TypeScript
+
+- Development Environment: Google AI Studio (App Editor)
+
+- Deployment & Source Control: GitHub
+
+Casi d'Uso Dimostrati
+- Bollette (Utilities): Estrazione automatica di importi, scadenze e generazione link di pagamento.
+
+- Ricevute Fiscali: Categorizzazione spese per note spese aziendali e verifica dati fiscali.
+
+- Referti Medici (Nursing Brain Sheets): Interpretazione di grafia medica complessa per estrarre diagnosi, allergie e piani di cura operativi.
