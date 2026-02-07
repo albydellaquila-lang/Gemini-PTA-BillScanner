@@ -1,12 +1,13 @@
 
-import React, { useState, useRef } from 'react';
-import { Camera, Upload, FileText, AlertCircle, CheckCircle2, RefreshCcw, Loader2, Sparkles, Info, ArrowRight } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Camera, Upload, FileText, AlertCircle, CheckCircle2, RefreshCcw, Loader2, Sparkles, Info, ArrowRight, CreditCard, ReceiptText, Volume2, VolumeX } from 'lucide-react';
 import { analyzeBill } from './services/geminiService';
 import { AnalysisState, BillData, KeyData } from './types';
 
 const App: React.FC = () => {
   const [image, setImage] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string>('');
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisState>({
     loading: false,
     error: null,
@@ -14,6 +15,13 @@ const App: React.FC = () => {
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Stop speech if we reset or component unmounts
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -23,6 +31,8 @@ const App: React.FC = () => {
         setImage(reader.result as string);
         setMimeType(file.type);
         setAnalysis({ loading: false, error: null, data: null });
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
       };
       reader.readAsDataURL(file);
     }
@@ -54,8 +64,33 @@ const App: React.FC = () => {
     setImage(null);
     setMimeType('');
     setAnalysis({ loading: false, error: null, data: null });
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  const toggleSpeech = () => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    if (!analysis.data) return;
+
+    const textToRead = `${analysis.data.tipo}. Riassunto: ${analysis.data.riassunto}. Azione consigliata: ${analysis.data.azione_consigliata}`;
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    utterance.lang = 'it-IT';
+    
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    
+    setIsSpeaking(true);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const isBolletta = analysis.data?.tipo.toLowerCase().includes('bolletta') || analysis.data?.tipo.toLowerCase().includes('fattura');
+  const isScontrino = analysis.data?.tipo.toLowerCase().includes('scontrino') || analysis.data?.tipo.toLowerCase().includes('ricevuta');
 
   return (
     <div className="min-h-screen pb-12">
@@ -159,13 +194,22 @@ const App: React.FC = () => {
               {analysis.data && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
                   {/* Category & Summary */}
-                  <div className="bg-white rounded-3xl p-8 border shadow-sm">
+                  <div className="bg-white rounded-3xl p-8 border shadow-sm relative group">
                     <div className="flex items-center justify-between mb-6">
                       <div className="bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-bold tracking-wide uppercase">
                         {analysis.data.tipo}
                       </div>
-                      <div className="bg-green-100 p-1.5 rounded-full">
-                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={toggleSpeech}
+                          className={`p-2 rounded-xl transition-all ${isSpeaking ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-110' : 'bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600'}`}
+                          title={isSpeaking ? "Ferma lettura" : "Leggi a voce"}
+                        >
+                          {isSpeaking ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                        </button>
+                        <div className="bg-green-100 p-1.5 rounded-full">
+                          <CheckCircle2 className="w-5 h-5 text-green-600" />
+                        </div>
                       </div>
                     </div>
                     
@@ -192,6 +236,30 @@ const App: React.FC = () => {
                       ))}
                     </div>
                   </div>
+
+                  {/* Quick Actions based on type */}
+                  {(isBolletta || isScontrino) && (
+                    <div className="flex gap-4">
+                      {isBolletta && (
+                        <button 
+                          onClick={() => alert("Reindirizzamento al portale di pagamento...")}
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white p-6 rounded-3xl font-bold shadow-lg shadow-emerald-100 flex items-center justify-center gap-3 transition-all hover:-translate-y-1"
+                        >
+                          <CreditCard className="w-6 h-6" />
+                          <span className="text-lg">Paga ora</span>
+                        </button>
+                      )}
+                      {isScontrino && (
+                        <button 
+                          onClick={() => alert("Scontrino aggiunto alla tua Nota Spese.")}
+                          className="flex-1 bg-slate-800 hover:bg-slate-900 text-white p-6 rounded-3xl font-bold shadow-lg shadow-slate-200 flex items-center justify-center gap-3 transition-all hover:-translate-y-1"
+                        >
+                          <ReceiptText className="w-6 h-6" />
+                          <span className="text-lg">Salva in Nota Spese</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   {/* Action Banner */}
                   <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl p-8 text-white shadow-2xl shadow-indigo-200 flex flex-col md:flex-row md:items-center justify-between gap-6 group">
